@@ -1,0 +1,5 @@
+name: BitStream.Flow CI
+
+on:
+  workflow_dispatch:
+
