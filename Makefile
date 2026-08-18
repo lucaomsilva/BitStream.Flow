@@ -15,9 +15,11 @@ JSON_FILE   = $(BUILD_DIR)/$(PROJ).json
 PNR_FILE    = $(BUILD_DIR)/$(PROJ)_pnr.json
 FS_FILE     = $(BUILD_DIR)/$(PROJ).fs
 
-# Verilog/VHDL source files
+# Verilog/VHDL/SystemVerilog source files
 ifeq ($(HDL),VHDL)
 SRCS        = $(wildcard $(SRC_DIR)/*.vhd)
+else ifeq ($(HDL),SystemVerilog)
+SRCS        = $(wildcard $(SRC_DIR)/*.sv)
 else
 SRCS        = $(wildcard $(SRC_DIR)/*.v)
 endif
@@ -70,12 +72,14 @@ pnr: $(PNR_FILE) ## Run Place & Route (NextPNR)
 .PHONY: pack
 pack: $(FS_FILE) ## Run Packing (Gowin_Pack)
 
-# Rule for synthesis (Verilog/VHDL -> JSON Netlist)
+# Rule for synthesis (Verilog/VHDL/SystemVerilog -> JSON Netlist)
 $(JSON_FILE): $(SRCS)
 	@echo -e "$(BLUE)>> Synthesizing with Yosys ($(HDL))...$(NC)"
 	@mkdir -p $(BUILD_DIR)
 ifeq ($(HDL),VHDL)
 	$(YOSYS) -m ghdl -p "ghdl $(SRCS) -e $(TOP); synth_gowin -json $(JSON_FILE)" || (echo -e "$(RED)Error during synthesis$(NC)"; exit 1)
+else ifeq ($(HDL),SystemVerilog)
+	$(YOSYS) -p "read_verilog -sv $(SRCS); synth_gowin -json $(JSON_FILE)" || (echo -e "$(RED)Error during synthesis$(NC)"; exit 1)
 else
 	$(YOSYS) -p "synth_gowin -json $(JSON_FILE)" $(SRCS) || (echo -e "$(RED)Error during synthesis$(NC)"; exit 1)
 endif
