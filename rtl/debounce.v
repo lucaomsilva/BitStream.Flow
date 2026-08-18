@@ -4,7 +4,8 @@ module debounce(
     input  wire btn_in,
     output reg  btn_out
 );
-    parameter STABILITY_COUNT = 20000; // Contagem para ~1ms de debounce com clock de 27MHz
+    // Contagem para ~1ms de debounce com clock de 27MHz
+    parameter integer STABILITY_COUNT = 20000;
     reg [15:0] counter = 0;
     reg internal_state = 1'b1;
     always @(posedge clk) begin

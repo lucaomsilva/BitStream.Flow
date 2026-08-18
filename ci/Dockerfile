@@ -44,6 +44,12 @@ WORKDIR /build
 # Install Apycula v0.32 (Required by NextPNR for gowin_bba)
 RUN pip3 install --break-system-packages apycula==0.32
 
+# Install Verible for Verilog/SystemVerilog Linting (Static Binary)
+RUN wget https://github.com/chipsalliance/verible/releases/download/v0.0-4148-g1ea007ec/verible-v0.0-4148-g1ea007ec-linux-static-x86_64.tar.gz && \
+    tar -xvf verible-*.tar.gz && \
+    cp -r verible-*/bin/* /usr/local/bin/ && \
+    rm -rf verible-*
+
 ENV PATH="/root/.local/bin:/usr/local/bin:${PATH}"
 
 # Compile Yosys (static version v0.68)
@@ -108,6 +114,7 @@ COPY --from=builder /usr/local/bin/yosys* /usr/local/bin/
 COPY --from=builder /usr/local/bin/nextpnr-himbaechel /usr/local/bin/
 COPY --from=builder /usr/local/bin/gowin_pack /usr/local/bin/
 COPY --from=builder /usr/local/bin/ghdl* /usr/local/bin/
+COPY --from=builder /usr/local/bin/verible* /usr/local/bin/
 COPY --from=builder /usr/local/lib/ghdl/ /usr/local/lib/ghdl/
 COPY --from=builder /usr/local/share/yosys/ /usr/local/share/yosys/
 COPY --from=builder /usr/local/share/nextpnr/ /usr/local/share/nextpnr/

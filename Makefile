@@ -58,6 +58,16 @@ help: ## Display this help message
 
 ##@ Compilation Rules
 
+.PHONY: lint
+lint: ## Run static analysis (linting) on source files
+	@echo -e "$(BLUE)>> Linting $(HDL) source files...$(NC)"
+ifeq ($(HDL),VHDL)
+	ghdl -s $(SRCS) || (echo -e "$(RED)Error: VHDL linting failed$(NC)"; exit 1)
+else
+	verible-verilog-lint $(SRCS) || (echo -e "$(RED)Error: Verilog/SV linting failed$(NC)"; exit 1)
+endif
+	@echo -e "$(GREEN)>> Linting complete.$(NC)"
+
 # Default target: builds everything
 .PHONY: all
 all: $(FS_FILE) ## Build the bitstream (default)
@@ -141,6 +151,11 @@ docker-build: ## Build the Docker container locally
 docker-shell: ## Start an interactive shell inside the Docker container
 	@echo -e "$(BLUE)>> Starting interactive shell...$(NC)"
 	sudo docker run --rm -it -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) bash
+
+.PHONY: docker-lint
+docker-lint: ## Run 'make lint' inside the Docker container
+	@echo -e "$(BLUE)>> Running lint in container...$(NC)"
+	sudo docker run --rm -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) make lint HDL=$(HDL)
 
 .PHONY: docker-all
 docker-all: ## Run 'make all' inside the Docker container
