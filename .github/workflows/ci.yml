@@ -20,6 +20,8 @@ permissions: {}
 jobs:
   build-and-compile:
     runs-on: ubuntu-24.04
+    outputs:
+      bitstream_version: ${{ steps.get_metadata.outputs.bitstream_version }}
     permissions:
       contents: read
       packages: write
@@ -63,6 +65,7 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "DATE=$DATE" >> $GITHUB_ENV
           echo "BITSTREAM_VERSION=${{ env.HDL }}-$DATE-${{ github.run_id }}-$VERSION" >> $GITHUB_ENV
+          echo "bitstream_version=${{ env.HDL }}-$DATE-${{ github.run_id }}-$VERSION" >> $GITHUB_OUTPUT
 
       - name: Start Docker Atelier Container
         run: |
@@ -84,3 +87,14 @@ jobs:
         with:
           name: bitstream-${{ env.BITSTREAM_VERSION }}
           path: canvas/
+
+  trigger_cd:
+    needs: build-and-compile
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    uses: ./.github/workflows/cd.yml
+    with:
+      tag: ${{ github.ref_name }}
+      artifact_name: bitstream-${{ needs.build-and-compile.outputs.bitstream_version }}
+    secrets: inherit
