@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     graphviz=2.42.2-9build1 \
     xdot=1.3-1 \
     pkg-config=1.8.1-2build1 \
+    gnat=13.2ubuntu2  \
     python3=3.12.3-0ubuntu2.1 \
     python3-dev=3.12.3-0ubuntu2.1 \
     python3-pip=24.0+dfsg-1ubuntu1 \
@@ -53,6 +54,20 @@ RUN git clone --branch v0.68 https://github.com/YosysHQ/yosys.git && \
     cmake --build build -j$(nproc) && \
     cmake --install build
 
+# Compile GHDL (static version v4.1.0)
+RUN git clone https://github.com/ghdl/ghdl.git && \
+    cd ghdl && \
+    ./configure --prefix=/usr/local --enable-synth --enable-libghdl && \
+    make -j$(nproc) && \
+    make install
+
+# Compile ghdl-yosys-plugin
+RUN git clone https://github.com/ghdl/ghdl-yosys-plugin.git && \
+    cd ghdl-yosys-plugin && \
+    git checkout master && \
+    make GHDL=ghdl YOSYS_CONFIG=yosys-config -j$(nproc) && \
+    make install
+
 # Compile nextpnr-himbaechel (static version nextpnr-0.10)
 RUN git clone --branch nextpnr-0.10 https://github.com/YosysHQ/nextpnr.git && \
     cd nextpnr && \
@@ -83,6 +98,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip=24.0+dfsg-1ubuntu1 \
     tcl=8.6.14build1 \
     make=4.3-4.1build2 \
+    gnat=13.2ubuntu2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Re-install Apycula in runtime stage
@@ -91,8 +107,14 @@ RUN pip3 install --break-system-packages apycula==0.32
 COPY --from=builder /usr/local/bin/yosys* /usr/local/bin/
 COPY --from=builder /usr/local/bin/nextpnr-himbaechel /usr/local/bin/
 COPY --from=builder /usr/local/bin/gowin_pack /usr/local/bin/
+COPY --from=builder /usr/local/bin/ghdl* /usr/local/bin/
+COPY --from=builder /usr/local/lib/ghdl/ /usr/local/lib/ghdl/
 COPY --from=builder /usr/local/share/yosys/ /usr/local/share/yosys/
 COPY --from=builder /usr/local/share/nextpnr/ /usr/local/share/nextpnr/
+
+COPY --from=builder /usr/local/lib/libghdl* /usr/local/lib/
+COPY --from=builder /usr/local/share/yosys/plugins/ghdl.so /usr/local/share/yosys/plugins/
+RUN ldconfig
 
 WORKDIR /project
 

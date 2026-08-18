@@ -15,8 +15,12 @@ JSON_FILE   = $(BUILD_DIR)/$(PROJ).json
 PNR_FILE    = $(BUILD_DIR)/$(PROJ)_pnr.json
 FS_FILE     = $(BUILD_DIR)/$(PROJ).fs
 
-# Verilog source files
+# Verilog/VHDL source files
+ifeq ($(HDL),VHDL)
+SRCS        = $(wildcard $(SRC_DIR)/*.vhd)
+else
 SRCS        = $(wildcard $(SRC_DIR)/*.v)
+endif
 
 # === Board Configuration (Tang Nano 9K) ===
 # Parameters extracted from datasheets and toolchain documentation
@@ -66,11 +70,15 @@ pnr: $(PNR_FILE) ## Run Place & Route (NextPNR)
 .PHONY: pack
 pack: $(FS_FILE) ## Run Packing (Gowin_Pack)
 
-# Rule for synthesis (Verilog -> JSON Netlist)
+# Rule for synthesis (Verilog/VHDL -> JSON Netlist)
 $(JSON_FILE): $(SRCS)
-	@echo -e "$(BLUE)>> Synthesizing with Yosys...$(NC)"
+	@echo -e "$(BLUE)>> Synthesizing with Yosys ($(HDL))...$(NC)"
 	@mkdir -p $(BUILD_DIR)
+ifeq ($(HDL),VHDL)
+	$(YOSYS) -m ghdl -p "ghdl $(SRCS) -e $(TOP); synth_gowin -json $(JSON_FILE)" || (echo -e "$(RED)Error during synthesis$(NC)"; exit 1)
+else
 	$(YOSYS) -p "synth_gowin -json $(JSON_FILE)" $(SRCS) || (echo -e "$(RED)Error during synthesis$(NC)"; exit 1)
+endif
 
 # Rule for Place & Route (JSON Netlist -> PNR JSON)
 $(PNR_FILE): $(JSON_FILE)
@@ -133,7 +141,7 @@ docker-shell: ## Start an interactive shell inside the Docker container
 .PHONY: docker-all
 docker-all: ## Run 'make all' inside the Docker container
 	@echo -e "$(BLUE)>> Running make all in container...$(NC)"
-	sudo docker run --rm -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) make all
+	sudo docker run --rm -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) bash -c "make all HDL=$(HDL) && chown -R $$(id -u):$$(id -g) $(BUILD_DIR)"
 
 ##@ Clean Target
 
