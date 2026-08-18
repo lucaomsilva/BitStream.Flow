@@ -1,0 +1,23 @@
+# Verible Lint Configuration File
+# This file works just like .golangci.yml! Verible will automatically detect it.
+# 
+# Use '+' to enable a rule, '-' to disable a rule, and '=' to set parameters.
+# You can see all available rules by running: verible-verilog-lint --help_rules
+
+# Disable line length checking (often too restrictive for hardware code)
+-line-length
+
+# Disable no-tabs rule if you prefer using tabs for indentation
+-no-tabs
+
+# Ensure non-blocking assignments (<=) are used in sequential logic (always_ff)
++always-ff-non-blocking
+
+# Enforce port declarations style
++port-declarations
+
+# Enforce module names match the file names
++module-filename
+
+# Ensure that 'begin' and 'end' blocks are used correctly
++module-begin-block
