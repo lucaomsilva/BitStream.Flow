@@ -1,0 +1,39 @@
+name: BitStream.Flow CD
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Version tag"
+        required: true
+        type: string
+      artifact_name:
+        description: "Name of the artifact to download"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./bitstream_${{ inputs.tag }}
+
+      - name: Prepare Bitstream
+        run: |
+          # Rename the raw .fs file from the canvas to a clean, versioned name for users
+          mv ./bitstream_${{ inputs.tag }}/*.fs ./bitstream_${{ inputs.tag }}/bitstream_${{ inputs.tag }}.fs
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          files: ./bitstream_${{ inputs.tag }}/bitstream_${{ inputs.tag }}.fs
+          body: "Automated Bitstream Release version ${{ inputs.tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
