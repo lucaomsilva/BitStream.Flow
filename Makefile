@@ -1,11 +1,13 @@
 # === Project Configuration ===
 SHELL      := /bin/bash
 DOCKER_TAG ?= v1.0
+HOST_UID   := $(shell id -u)
+HOST_GID   := $(shell id -g)
 
 # Compile variables
 PROJ            = top
 TOP             = top
-BUILD_DIR       = canvas
+BUILD_DIR       = build
 SRC_DIR         = rtl
 CONSTRAINTS_DIR = syn/constraints
 HDL            ?= Verilog
@@ -150,17 +152,17 @@ docker-build: ## Build the Docker container locally
 .PHONY: docker-shell
 docker-shell: ## Start an interactive shell inside the Docker container
 	@echo -e "$(BLUE)>> Starting interactive shell...$(NC)"
-	sudo docker run --rm -it -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) bash
+	sudo docker run --rm -it --user $(HOST_UID):$(HOST_GID) -v $$(pwd):/home/painter/canvas:z -w /home/painter/canvas bitstream-flow:$(DOCKER_TAG) bash
 
 .PHONY: docker-lint
 docker-lint: ## Run 'make lint' inside the Docker container
 	@echo -e "$(BLUE)>> Running lint in container...$(NC)"
-	sudo docker run --rm -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) make lint HDL=$(HDL)
+	sudo docker run --rm --user $(HOST_UID):$(HOST_GID) -v $$(pwd):/home/painter/canvas:z -w /home/painter/canvas bitstream-flow:$(DOCKER_TAG) make lint HDL=$(HDL)
 
 .PHONY: docker-all
 docker-all: ## Run 'make all' inside the Docker container
 	@echo -e "$(BLUE)>> Running make all in container...$(NC)"
-	sudo docker run --rm -v $$(pwd):/project:z -w /project bitstream-flow:$(DOCKER_TAG) bash -c "make all HDL=$(HDL) && chown -R $$(id -u):$$(id -g) $(BUILD_DIR)"
+	sudo docker run --rm --user $(HOST_UID):$(HOST_GID) -v $$(pwd):/home/painter/canvas:z -w /home/painter/canvas bitstream-flow:$(DOCKER_TAG) make all HDL=$(HDL)
 
 ##@ Clean Target
 

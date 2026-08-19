@@ -86,7 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bitstream-${{ env.BITSTREAM_VERSION }}
-          path: canvas/
+          path: build/
 
   trigger_cd:
     needs: build-and-compile

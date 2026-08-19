@@ -134,7 +134,7 @@ WORKDIR /home/painter/canvas
 # ==============================================================================
 FROM runtime AS synthesis
 
-COPY . /project
+COPY . /home/painter/canvas
 
 RUN make synth
 

@@ -12,7 +12,8 @@ It abstracts the complexity of open-source toolchains (Yosys, NextPNR, OpenFPGAL
 - The Developer: **painter**
 - Docker Image: **atelier**
 - Docker Container: **easel**
-- Build Folder: **canvas/**
+- Project Folder: **canvas**
+- Build Folder: **build/**
 
 ---
 
@@ -69,7 +70,7 @@ This repository is structured to separate design files, constraints, and build a
 └── Makefile            # The orchestrator for the entire build process
 ```
 
-- **`canvas/`**: Automatically created to store all output files from the build process (ignored by Git).
+- **`build/`**: Automatically created to store all output files from the build process (ignored by Git).
 - **`rtl/`**: Primary HDL source files.
 - **`sim/`**: Dedicated folder for testbench files.
 
@@ -124,7 +125,7 @@ The `Makefile` orchestrates the toolchain. By default, it targets the **Tang Nan
 | `make flash-sram` | Programs the bitstream to **SRAM** (volatile, faster testing). |
 | `make detect` | Verifies if the FPGA is correctly connected. |
 | `make install-tools`| Compiles `openFPGALoader` from source on Fedora/Ubuntu and sets udev rules. |
-| `make clean` | Removes the `canvas/` directory and all generated artifacts. |
+| `make clean` | Removes the `build/` directory and all generated artifacts. |
 
 ### HDL Selection
 You can dynamically switch the targeted language by passing the `HDL` variable:
@@ -144,7 +145,7 @@ The automation is powered by **GitHub Actions**. It ensures every change is synt
 - **Build Image:** Builds the `atelier` Docker environment and caches it in GHCR.
 - **Linting:** Executes `make lint` inside the container for static analysis.
 - **Compilation:** Executes `make all` to generate the `.fs` bitstream.
-- **Artifact:** Uploads the generated `canvas/` folder as a GitHub artifact (`bitstream-<HDL>-<DATE>-<ID>-<VERSION>`).
+- **Artifact:** Uploads the generated `build/` folder as a GitHub artifact (`bitstream-<HDL>-<DATE>-<ID>-<VERSION>`).
 
 ### 2. Continuous Deployment (`cd.yml`)
 - **Trigger:** Called automatically by `ci.yml` when a new version tag (e.g., `v1.0.0`) is pushed.
