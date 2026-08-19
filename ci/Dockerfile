@@ -123,7 +123,11 @@ COPY --from=builder /usr/local/lib/libghdl* /usr/local/lib/
 COPY --from=builder /usr/local/share/yosys/plugins/ghdl.so /usr/local/share/yosys/plugins/
 RUN ldconfig
 
-WORKDIR /project
+RUN (userdel -r ubuntu || true) && \
+    groupadd -g 1000 painter && \
+    useradd -u 1000 -g 1000 -m -s /bin/bash painter
+
+WORKDIR /home/painter/canvas
 
 # ==============================================================================
 # Stage 3: "synthesis" - Copies project and runs Yosys
