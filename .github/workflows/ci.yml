@@ -97,4 +97,5 @@ jobs:
     with:
       tag: ${{ github.ref_name }}
       artifact_name: bitstream-${{ needs.build-and-compile.outputs.bitstream_version }}
+      bitstream_version: ${{ needs.build-and-compile.outputs.bitstream_version }}
     secrets: inherit
